@@ -1,66 +1,90 @@
-#include <graphics.h>  
-#include <stdlib.h>  
-#include <stdio.h>  
-#include <conio.h>  
-#include <math.h>  
-  
-    void    EightWaySymmetricPlot(int xc,int yc,int x,int y)  
-   {  
-    putpixel(x+xc,y+yc,RED);  
-    putpixel(x+xc,-y+yc,YELLOW);  
-    putpixel(-x+xc,-y+yc,GREEN);  
-    putpixel(-x+xc,y+yc,YELLOW);  
-    putpixel(y+xc,x+yc,12);  
-    putpixel(y+xc,-x+yc,14);  
-    putpixel(-y+xc,-x+yc,15);  
-    putpixel(-y+xc,x+yc,6);  
-   }  
-  
-    void BresenhamCircle(int xc,int yc,int r)  
-   {  
-    int x=0,y=r,d=3-(2*r);  
-    EightWaySymmetricPlot(xc,yc,x,y);  
-  
-    while(x<=y)  
-     {  
-      if(d<=0)  
-             {  
-        d=d+(4*x)+6;  
-      }  
-     else  
-      {  
-        d=d+(4*x)-(4*y)+10;  
-        y=y-1;  
-      }  
-       x=x+1;  
-       EightWaySymmetricPlot(xc,yc,x,y);  
-      }  
-    }  
-  
-    int  main(void)  
-   {  
-    /* request auto detection */  
-    int xc,yc,r,gdriver = DETECT, gmode, errorcode;  
-    /* initialize graphics and local variables */  
-     initgraph(&gdriver, &gmode, "C:\\TURBOC3\\BGI");  
-  
-     /* read result of initialization */  
-     errorcode = graphresult();  
-  
-      if (errorcode != grOk)  /* an error occurred */  
-     {  
-        printf("Graphics error: %s\n", grapherrormsg(errorcode));  
-        printf("Press any key to halt:");  
-        getch();  
-        exit(1); /* terminate with an error code */  
-     }  
-       printf("Enter the values of xc and yc :");  
-       scanf("%d%d",&xc,&yc);  
-       printf("Enter the value of radius  :");  
-       scanf("%d",&r);  
-       BresenhamCircle(xc,yc,r);  
-  
-     getch();  
-     closegraph();  
-     return 0;  
-    }  
+#include <stdio.h>
+#include <math.h>
+#include <GL/glut.h>
+
+// Center of the cicle = (320, 240)
+int xc = 320, yc = 240;
+
+// Plot eight points using circle's symmetrical property
+void plot_point(int x, int y)
+{
+  glBegin(GL_POINTS);
+  glVertex2i(xc+x, yc+y);
+  glVertex2i(xc+x, yc-y);
+  glVertex2i(xc+y, yc+x);
+  glVertex2i(xc+y, yc-x);
+  glVertex2i(xc-x, yc-y);
+  glVertex2i(xc-y, yc-x);
+  glVertex2i(xc-x, yc+y);
+  glVertex2i(xc-y, yc+x);
+  glEnd();
+}
+
+// Function to draw a circle using bresenham's
+// circle drawing algorithm
+void bresenham_circle(int r)
+{
+  int x=0,y=r;
+  float pk=(5.0/4.0)-r;
+
+  /* Plot the points */
+  /* Plot the first point */
+  plot_point(x,y);
+  int k;
+  /* Find all vertices till x=y */
+  while(x < y)
+  {
+    x = x + 1;
+    if(pk < 0)
+      pk = pk + 2*x+1;
+    else
+    {
+      y = y - 1;
+      pk = pk + 2*(x - y) + 1;
+    }
+    plot_point(x,y);
+  }
+  glFlush();
+}
+
+// Function to draw two concentric circles
+void concentric_circles(void)
+{
+  /* Clears buffers to preset values */
+  glClear(GL_COLOR_BUFFER_BIT);
+
+  int radius1 = 100, radius2 = 200;
+  bresenham_circle(radius1);
+  bresenham_circle(radius2);
+}
+
+void Init()
+{
+  /* Set clear color to white */
+  glClearColor(1.0,1.0,1.0,0);
+  /* Set fill color to black */
+  glColor3f(0.0,0.0,0.0);
+  /* glViewport(0 , 0 , 640 , 480); */
+  /* glMatrixMode(GL_PROJECTION); */
+  /* glLoadIdentity(); */
+  gluOrtho2D(0 , 640 , 0 , 480);
+}
+
+void main(int argc, char **argv)
+{
+  /* Initialise GLUT library */
+  glutInit(&argc,argv);
+  /* Set the initial display mode */
+  glutInitDisplayMode(GLUT_SINGLE | GLUT_RGB);
+  /* Set the initial window position and size */
+  glutInitWindowPosition(0,0);
+  glutInitWindowSize(640,480);
+  /* Create the window with title "DDA_Line" */
+  glutCreateWindow("bresenham_circle");
+  /* Initialize drawing colors */
+  Init();
+  /* Call the displaying function */
+  glutDisplayFunc(concentric_circles);
+  /* Keep displaying untill the program is closed */
+  glutMainLoop();
+}
